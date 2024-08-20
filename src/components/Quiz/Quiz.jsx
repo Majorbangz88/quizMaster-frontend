@@ -54,7 +54,7 @@ function Quiz() {
             try {
                 const detail = JSON.parse(localStorage.getItem('detail'));
 
-                const response = await fetch("http://localhost:5000/api/questions/getquestions", {
+                const response = await fetch("https://quizapp-98wt.onrender.com/api/questions/getquestions", {
                     method: 'POST',
                     headers: {
                         Authorization: `Bearer ${detail.token}`
