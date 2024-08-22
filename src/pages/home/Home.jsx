@@ -3,61 +3,61 @@ import {json, useNavigate} from 'react-router-dom';
 import FilledButton from "../../components/Buttons/FilledButton";
 import styles from "./index.module.css";
 import axios from "axios";
+import HourGlass from '../../assets/hour glass.jpg';
 
 function Home() {
     const [isRegistering, setIsRegistering] = useState(false);
     const [formData, setFormData] = useState({ email: '', password: '' });
     const [regFormData, setRegFormData] = useState({ username: '', email: '', password: '' });
     const [successMessage, setSuccessMessage] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
     const navigate = useNavigate();
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
-    };
 
     const handleRegChange = (e) => {
         const { name, value } = e.target;
-        setRegFormData({ ...regFormData, [name]: value });
-    };
+        const targetFormData = isRegistering ? regFormData : formData;
+        const setTargetFormData = isRegistering ? setRegFormData : setFormData;
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const res = await axios.post('https://quizapp-98wt.onrender.com/api/auth/login', formData);
-            console.log(res);
-            if (res.status === 200) {
-
-                const username = localStorage.getItem('username');
-                const userDetail = {
-                    username: username,
-                    token: res.data.token,
-                }
-                localStorage.setItem('detail', JSON.stringify(userDetail));
-                console.log(userDetail);
-
-                setSuccessMessage('Login Successful');
-                navigate('/quiz');
-            } else {
-                console.log(res)
-            }
-        } catch (err) {
-            console.error(err.message);
-        }
+        setTargetFormData({ ...targetFormData, [name]: value });
     };
 
     const handleRegSubmit = async (e) => {
         e.preventDefault();
         try {
-            const res = await axios.post('https://quizapp-98wt.onrender.com/api/auth/register', regFormData);
+            const res = await axios.post('http://localhost:5000/api/auth/register', regFormData);
             if (res.status === 200) {
+                localStorage.setItem('username', res.data.username);
                 setSuccessMessage('Registration Successful');
+                alert('Registration Successful');
                 setIsRegistering(false);
                 navigate('/login');
-                localStorage.setItem('username', res.data.username);
+            } else {
+                setErrorMessage(res.data.message);
             }
         } catch (err) {
-            console.error(err);
+            setErrorMessage(err.message);
+        }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await axios.post('http://localhost:5000/api/auth/login', formData);
+            if (res.status === 200) {
+                const userDetail = {
+                    username: res.data.username,
+                    token: res.data.token,
+                };
+                localStorage.setItem('detail', JSON.stringify(userDetail));
+
+                setSuccessMessage('Login Successful');
+                alert('Login Successful');
+                navigate('/quiz');
+            } else {
+                setErrorMessage(res.data.message);
+            }
+        } catch (err) {
+            setErrorMessage(err.message);
         }
     };
 
@@ -75,7 +75,6 @@ function Home() {
         }
     }, [successMessage]);
 
-
     return (
         <div className={styles.homeMainContainer}>
             {successMessage && (
@@ -84,12 +83,13 @@ function Home() {
                 </div>
             )}
             <div className={styles.welcomeDiv}>
+                <img src={HourGlass} alt={'Hour glass'} className={styles.hourglass} />
                 <div className={styles.welcomeMsgDiv}>
                     <h1 className={styles.welcomeText}>WELCOME <br/>TO QUIZ MASTER</h1>
-                    <p className={styles.fullMessage}>
-                        YOUR ULTIMATE TRIVIA
-                        <br/>CHALLENGE! <br/> <br/>
-
+                    <p className={styles.subText}>
+                        YOUR ULTIMATE TRIVIA CHALLENGE!
+                    </p>
+                    <p className={styles.innerText}>
                         Get ready to embark on an exciting journey of<br/>
                         knowledge, fun, and competition! Whether you're <br/>
                         a trivia buff, a curious learner, or just looking <br/>
@@ -99,23 +99,25 @@ function Home() {
                         So, what are you waiting for? <br/>
                         Dive in, challenge yourself, <br/>
                         and most importantly, have fun! <br/>
-
-                        <br/>
-                        <FilledButton
-                            text={'Let the games begin!'}
-                            background={'rgb(82, 125, 198)'}
-                            color={'white'}
-                            padding={'10px'}
-                            cursor={'pointer'}
-                            border={'none'}
-                        />
                     </p>
+                    <FilledButton
+                        text={'Let the games begin!'}
+                        background={'rgb(82, 125, 198)'}
+                        color={'white'}
+                        padding={'20px'}
+                        cursor={'pointer'}
+                        border={'none'}
+                        fontSize={'14px'}
+                        fontWeight={'bold'}
+                        onclick={toggleForm}
+                    />
                 </div>
             </div>
             <div className={styles.actionDiv}>
                 {isRegistering ? (
                     <form onSubmit={handleRegSubmit} className={styles.loginForm}>
                         <h2 className={styles.formName}>SIGN UP</h2>
+                        <p style={{color: 'red'}}>{errorMessage}</p>
                         <label className={styles.labels}>Username</label>
                         <input
                             type="text"
@@ -171,13 +173,14 @@ function Home() {
                 ) : (
                     <form onSubmit={handleSubmit} className={styles.loginForm}>
                         <h2 className={styles.formName}>LOG IN</h2>
+                        <p style={{color: 'red'}}>{errorMessage}</p>
                         <label className={styles.labels}>Email</label>
                         <input
                             type="email"
                             name="email"
                             placeholder="Email"
                             value={formData.email}
-                            onChange={handleChange}
+                            onChange={handleRegChange}
                             className={styles.inputFields}
                         />
                         <label className={styles.labels}>Password</label>
@@ -186,7 +189,7 @@ function Home() {
                             name="password"
                             placeholder="Password"
                             value={formData.password}
-                            onChange={handleChange}
+                            onChange={handleRegChange}
                             className={styles.inputFields}
                         />
                         <div className={styles.buttons}>

@@ -1,7 +1,7 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import FilledButton from "../Buttons/FilledButton";
 import styles from './index.module.css';
-import {useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function Quiz() {
     const [preferences, setPreferences] = useState({
@@ -14,13 +14,11 @@ function Quiz() {
     const [selectedAnswer, setSelectedAnswer] = useState(null);
     const [isQuizFinished, setIsQuizFinished] = useState(false);
     const [isPreferenceSelected, setIsPreferenceSelected] = useState(false);
-    const [difficulty, setDifficulty] = useState("");
     const [timer, setTimer] = useState(30);
-    // const timerRef = useRef({});
     const navigate = useNavigate();
 
     const handlePreferenceChange = (e) => {
-        const {name, value} = e.target;
+        const { name, value } = e.target;
         setPreferences({
             ...preferences,
             [name]: value
@@ -30,14 +28,8 @@ function Quiz() {
     useEffect(() => {
         if (timer > 0) {
             const countdown = setInterval(() => {
-                setTimer(timer - 1);
+                setTimer((prevTimer) => prevTimer - 1);
             }, 1000);
-
-            // if (timer <= 10) {
-            //     timerRef.current.style.color = 'red';
-            // } else {
-            //     timerRef.current.style.color = 'black';
-            // }
 
             return () => clearInterval(countdown);
         } else {
@@ -48,25 +40,27 @@ function Quiz() {
     let username = null;
 
     const handleStartQuiz = async () => {
-        console.log(preferences)
-        if (preferences.category && difficulty) {
+        console.log(preferences);
+        if (preferences.category && preferences.difficulty) {
             setIsPreferenceSelected(true);
             try {
                 const detail = JSON.parse(localStorage.getItem('detail'));
 
-                const response = await fetch("https://quizapp-98wt.onrender.com/api/questions/getquestions", {
+                const response = await fetch("http://localhost:5000/api/questions/getquestions", {
                     method: 'POST',
                     headers: {
-                        Authorization: `Bearer ${detail.token}`
+                        Authorization: `Bearer ${detail.token}`,
+                        'Content-Type': 'application/json',
                     },
-                    body: {
+                    body: JSON.stringify({
                         amount: 20,
                         category: preferences.category,
-                        difficulty: difficulty,
+                        difficulty: preferences.difficulty,
                         type: 'multiple',
-                    }
+                    })
                 }).then(resObj => resObj.json());
-                console.log(response)
+
+                console.log(response);
                 setQuestions(response);
                 setTimer(30);
 
@@ -83,12 +77,12 @@ function Quiz() {
 
     const handleAnswer = (question) => {
         console.log(score);
-        console.log("this is the question", question)
+        console.log("this is the question", question);
 
         console.log('Correct answer:', question.correct_answer);
         console.log('Selected Answer:', selectedAnswer);
 
-        if(question.correct_answer === selectedAnswer){
+        if (question.correct_answer === selectedAnswer) {
             setScore(score + 1);
         } else if (selectedAnswer === null) {
             setScore(score - 1);
@@ -98,8 +92,7 @@ function Quiz() {
             setCurrentQuestion(currentQuestion + 1);
             setSelectedAnswer(null);
             setTimer(30);
-        }
-        else {
+        } else {
             setIsQuizFinished(true);
         }
     };
@@ -124,7 +117,7 @@ function Quiz() {
             difficulty: ''
         });
         navigate('/quiz');
-    }
+    };
 
     if (isQuizFinished) {
         return (
@@ -135,7 +128,7 @@ function Quiz() {
                         <span className={styles.span}> {score}/{questions.length} </span>
                         questions correct
                     </p>
-                    <p className={styles.percent}>Your percentage score is:<br/>
+                    <p className={styles.percent}>Your percentage score is:<br />
                         <span>{calculatePercentage()}%</span>
                     </p>
                     <FilledButton
@@ -148,7 +141,7 @@ function Quiz() {
                         width={'300px'}
                         border={'none'}
                         cursor={'pointer'}
-                        onclick={handleRetakeQuiz}
+                        onClick={handleRetakeQuiz}
                     />
                 </div>
             </div>
@@ -187,7 +180,7 @@ function Quiz() {
                         <select
                             name="difficulty"
                             value={preferences.difficulty}
-                            onChange={setDifficulty}
+                            onChange={handlePreferenceChange}
                             className={styles.options}
                         >
                             <option value="" disabled>Difficulty Level</option>
@@ -208,7 +201,9 @@ function Quiz() {
                             </h2>
                             <p className={styles.theQuestions}>{questions[currentQuestion].question}</p>
                             <div className={styles.timer}>
-                                <p style={{fontSize: '23px', fontWeight: 'bold'}}>Time left: 00:{timer} seconds</p>
+                                <p style={{ fontSize: '23px', fontWeight: 'bold', color: timer <= 10 ? 'red' : 'black' }}>
+                                    Time left: 00:{timer < 10 ? `0${timer}` : timer} seconds
+                                </p>
                             </div>
                             <div>
                                 {questions[currentQuestion].incorrect_answers.concat(
@@ -234,9 +229,10 @@ function Quiz() {
                                     background={'rgb(82, 125, 198)'}
                                     color={'white'}
                                     cursor={'pointer'}
-                                    fontSize={'15px'}
-                                    fontWeight={'bolder'}
-                                    onclick={() => handleAnswer(questions[currentQuestion])}
+                                    width={'250px'}
+                                    height={'50px'}
+                                    fontWeight={'bold'}
+                                    onClick={() => handleAnswer(questions[currentQuestion])}
                                 />
                             </div>
                         </>
