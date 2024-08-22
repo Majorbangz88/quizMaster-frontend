@@ -232,7 +232,7 @@ function Quiz() {
                                     width={'250px'}
                                     height={'50px'}
                                     fontWeight={'bold'}
-                                    onClick={() => handleAnswer(questions[currentQuestion])}
+                                    onClick={() => handleAnswer(questions[currentQuestion] + 1)}
                                 />
                             </div>
                         </>
