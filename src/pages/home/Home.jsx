@@ -3,7 +3,7 @@ import {json, useNavigate} from 'react-router-dom';
 import FilledButton from "../../components/Buttons/FilledButton";
 import styles from "./index.module.css";
 import axios from "axios";
-import HourGlass from '../../assets/hour glass.jpg';
+import HourGlass from '../../assets/hour glass-copy.jpg';
 
 function Home() {
     const [isRegistering, setIsRegistering] = useState(false);
